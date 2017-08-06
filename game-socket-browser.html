@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Document</title>
+  <style>
+    #box{width: 200px;height: 200px;background: url('/images/1.jpg');background-size: 100% 100%;position: absolute;left: 8px;top: 60px;}
+  </style>
+  <script src="/js/socket.io.js"></script>
+</head>
+<body>
+  <h2>谁动了我的好吃的</h2>
+  <div id="box"></div>
+
+  <script>
+    var socket = io.connect("http://localhost:3000");
+
+    var box = document.querySelector("#box");
+    var boxX,boxY,mouseX,mouseY;
+    //注册mousedown事件
+    box.onmousedown = function(e){
+      var evt = e || window.event;
+      mouseX = evt.clientX;
+      mouseY = evt.clientY;
+      boxX = box.offsetLeft;
+      boxY = box.offsetTop;
+      //注册mouseover事件
+      document.onmousemove = function(e){
+        var evt = e || window.event;
+        var x = boxX + (evt.clientX - mouseX);
+        var y = boxY + (evt.clientY - mouseY);
+        box.style.left = x + "px";
+        box.style.top = y + "px";
+        //向服务端emit一个事件
+        socket.emit('move',{x,y});
+      }
+      //注册mouseup
+      document.onmouseup = function(){
+        document.onmousemove = null;
+      }
+    }
+    //注册服务端的drag事件
+    socket.on('drag',(position)=>{
+      box.style.left = position.x + "px";
+      box.style.top = position.y + "px";
+    });
+  </script>
+</body>
+</html>
